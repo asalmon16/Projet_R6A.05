@@ -5,9 +5,8 @@ const Package = require('../package.json');
 
 exports.plugin = {
     pkg: Package,
+    dependencies: '@hapipal/schwifty',
     register: async (server, options) => {
-
-        // Custom plugin code can go here
 
         await HauteCouture.compose(server, options);
     }

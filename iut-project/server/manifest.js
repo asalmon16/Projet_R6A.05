@@ -3,23 +3,22 @@
 const Dotenv = require('dotenv');
 const Confidence = require('@hapipal/confidence');
 const Toys = require('@hapipal/toys');
+const Schwifty = require('@hapipal/schwifty');
 
-// Pull .env into process.env
 Dotenv.config({ path: `${__dirname}/.env` });
 
-// Glue manifest as a confidence store
 module.exports = new Confidence.Store({
     server: {
         host: 'localhost',
         port: {
-            $param: 'PORT',
+            $env: 'PORT',
             $coerce: 'number',
             $default: 3000
         },
         debug: {
-            $filter: 'NODE_ENV',
+            $filter: { $env: 'NODE_ENV' },
             $default: {
-                log: ['error', 'start'],
+                log: ['error'],
                 request: ['error']
             },
             production: {
@@ -30,12 +29,65 @@ module.exports = new Confidence.Store({
     register: {
         plugins: [
             {
-                plugin: '../lib', // Main plugin
+                plugin: '@hapipal/schwifty',
+                options: {
+                    $filter: 'NODE_ENV',
+                    $default: {},
+                    $base: {
+                        migrateOnStart: true,
+                        knex: {
+                            client: 'sqlite3',
+                            useNullAsDefault: true,
+                            connection: {
+                                filename: ':memory:'
+                            },
+                            migrations: {
+                                stub: Schwifty.migrationsStubPath
+                            }
+                        }
+                    },
+                    production: {
+                        migrateOnStart: false
+                    }
+                }
+            },
+            {
+                plugin: '../lib',
                 options: {}
             },
             {
-                plugin: {
+                plugin: '@hapi/inert'
+            },
+            {
+                plugin: '@hapi/vision'
+            },
+            {
+                plugin: 'hapi-swagger',
+                options: {
                     $filter: 'NODE_ENV',
+                    $default: {},
+                    $base: {
+                        info: {
+                            title: 'API',
+                            description: 'API description',
+                            version: '1.0.0'
+                        },
+                        securityDefinitions: {
+                            jwt: {
+                                type: 'apiKey',
+                                name: 'Authorization',
+                                in: 'header'
+                            }
+                        },
+                        security: [{
+                            jwt: []
+                        }]
+                    }
+                }
+            },
+            {
+                plugin: {
+                    $filter: { $env: 'NODE_ENV' },
                     $default: '@hapipal/hpal-debug',
                     production: Toys.noop
                 }
