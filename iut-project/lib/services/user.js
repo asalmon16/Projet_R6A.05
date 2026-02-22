@@ -10,7 +10,14 @@ module.exports = class UserService extends Service {
     async create(user) {
 
         const { User } = this.server.models();
-        return User.query().insertAndFetch(user);
+        const { mailService } = this.server.services();
+
+        const createdUser = await User.query().insertAndFetch(user);
+
+        // Envoi de l'e-mail de bienvenue de façon asynchrone (pas besoin d'attendre pour répondre au client)
+        mailService.sendWelcomeEmail(createdUser);
+
+        return createdUser;
     }
 
     async findAll() {
@@ -71,6 +78,7 @@ module.exports = class UserService extends Service {
             {
                 aud: 'urn:audience:iut',
                 iss: 'urn:issuer:iut',
+                id: user.id,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.mail,

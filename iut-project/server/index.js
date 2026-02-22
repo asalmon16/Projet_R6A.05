@@ -12,7 +12,8 @@ exports.deployment = async ({ start } = {}) => {
     if (start) {
         await Exiting.createManager(server).start();
         server.log(['start'], `Server started at ${server.info.uri}`);
-        console.log(`Server started at ${server.info.uri}`);
+        console.log(`\nServeur démarré avec succès !`);
+        console.log(`Clique ici pour ouvrir l'API : ${server.info.uri}/documentation\n`);
         return server;
     }
 

@@ -39,7 +39,7 @@ module.exports = new Confidence.Store({
                             client: 'sqlite3',
                             useNullAsDefault: true,
                             connection: {
-                                filename: ':memory:'
+                                filename: process.env.DB_FILE || 'database.sqlite'
                             },
                             migrations: {
                                 stub: Schwifty.migrationsStubPath
